@@ -1,25 +1,38 @@
 import React from 'react';
-import logo from './logo.svg';
+import {
+  Route,
+  BrowserRouter as Router,
+  Switch,
+  Redirect,
+} from "react-router-dom";
+import SignIn from './components/SignIn';
+import SignUp from './components/SignUp';
+import Test from './components/Test';
 import './App.css';
+import { useSelector} from 'react-redux';
+
+function PrivateRoute({ component: Component, ...rest }) {
+
+  const user = useSelector(user => user);
+
+  return (
+    <Route
+      {...rest}
+      render={(props) => user.logged === true
+        ? <Component {...props} />
+        : <Redirect to='/signup' />}
+    />
+  )
+}
 
 function App() {
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <Switch>
+        <Route exact path="/" component={SignIn}></Route>
+        <Route path="/signup" component={SignUp}></Route>
+        <PrivateRoute path="/test" component={Test}></PrivateRoute>
+      </Switch>
   );
 }
 
