@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -13,12 +13,16 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import Alert from '@material-ui/lab/Alert';
 
 import {useHistory} from "react-router-dom";
 
 import { userLoggedIn } from '../redux/actions/userActions';
 import { auth } from '../services/firebase';
 import { useDispatch } from 'react-redux';
+import { useForm } from "react-hook-form";
+import SignInSchema from '../validations/SignInSchema';
+import validationMessage from '../helpers/validationMessage';
 
 
 function Copyright() {
@@ -55,15 +59,24 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SignIn() {
-  const classes = useStyles();
+    const classes = useStyles();
 
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     let [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const [apiErrors, setApiErrors] = useState(null);
+
+    const {register, handleSubmit, errors} = useForm({
+      validationSchema: SignInSchema
+    });
+
+    const dispatch = useDispatch();
+
+    const history = useHistory();
+
+    const onSubmit = () => {
         setLoading(true);
         auth.signInWithEmailAndPassword(email, password)
             .then((data) => {
@@ -71,16 +84,13 @@ export default function SignIn() {
               history.push('/test');
             })
             .catch(error => {
+                setApiErrors(error);
                 console.error(error);
             })
             .finally(() => {
                 setLoading(false);
             });
     };
-
-    const dispatch = useDispatch();
-
-    const history = useHistory();
   
     // useEffect(() => {
     //   const unsubscribe = onAuthStateChange(setUser);
@@ -99,11 +109,15 @@ export default function SignIn() {
         <Typography component="h1" variant="h5">
           Sign in
         </Typography>
-        <form className={classes.form} noValidate onSubmit={(e) => handleSubmit(e) }>
-          <TextField
+        <form className={classes.form} noValidate onSubmit={handleSubmit(onSubmit)}>
+          <TextField 
+            name="TextField"
             variant="outlined"
             margin="normal"
+            inputRef={register}
             required
+            error={ validationMessage('email', errors) ? true : false }
+            helperText={validationMessage('email', errors)}
             fullWidth
             id="email"
             label="Email Address"
@@ -113,10 +127,14 @@ export default function SignIn() {
             onChange={e => setEmail(e.target.value)}
           />
           <TextField
+            name="TextField"
             variant="outlined"
             margin="normal"
             required
+            inputRef={register}
             fullWidth
+            error={ validationMessage('email', errors) ? true : false }
+            helperText={ validationMessage('password', errors) }
             name="password"
             label="Password"
             type="password"
@@ -128,6 +146,7 @@ export default function SignIn() {
             control={<Checkbox value="remember" color="primary" />}
             label="Remember me"
           />
+          { apiErrors && <Alert severity="error">{apiErrors.message}</Alert> }
           <Button
             type="submit"
             fullWidth

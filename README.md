@@ -2,8 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 ## TO DO
 
-### Form Validation
-### Sign Up + Validation
+### Persist redux store
 
 ## Available Scripts
 
